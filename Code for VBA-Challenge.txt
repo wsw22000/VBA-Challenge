@@ -1,0 +1,402 @@
+'Code for Individual Sheet
+Sub StockChallenge():
+    
+    Dim LastRow As Long
+    Dim StockTicker As String
+    Dim i As Long
+    Dim TickerTableRow As Integer
+    TickerTableRow = 2
+    Dim VolumeTotal As Double
+    VolumeTotal = 0
+    Dim BegValue As Double
+    Dim EndValue As Double
+    Dim YearlyChange As Double
+    Dim PercentChange As Double
+         
+    Range("I1") = "Ticker"
+    Range("J1") = "Yearly Change"
+    Range("K1") = "Percent Change"
+    Range("L1") = "Total Stock Volume"
+        
+    'Counting Rows in original data
+    LastRow = Cells(Rows.Count, 1).End(xlUp).Row
+    
+    BegValue = Range("C2")
+ 
+    For i = 2 To LastRow
+         
+        ' Deals with what happens if a stock does not begin trading until later (starting value is 0)
+        If BegValue = -10 Then
+            If Cells(i, 3) > 0 Then
+                BegValue = Cells(i, 3).Value
+            End If
+        End If
+        
+        'Adding Volume Total if this row and row below have same name
+        If Cells(i, 1) = Cells(i + 1, 1) Then
+            VolumeTotal = VolumeTotal + Cells(i, 7).Value
+                
+        'If the current ticker doesn't match the ticker below
+        Else
+                              
+            'Set Stock Ticker to Current Row
+            StockTicker = Cells(i, 1).Value
+            Range("I" & TickerTableRow) = StockTicker
+            
+            'Add this rows' volume to total volume
+            VolumeTotal = VolumeTotal + Cells(i, 7).Value
+                        
+            'Print Volume Total in Table
+            Range("L" & TickerTableRow) = VolumeTotal
+        
+            'Reset Volume Total
+            VolumeTotal = 0
+                
+            'Set the Stocks End Value
+            EndValue = Cells(i, 6).Value
+            
+            'Calculate and put Yearly Change in table
+            YearlyChange = EndValue - BegValue
+            Range("J" & TickerTableRow) = YearlyChange
+            
+            'Calculate and put Percent Change in table
+            PercentChange = YearlyChange / BegValue
+            Range("k" & TickerTableRow) = PercentChange
+                        
+            'Move Output row by 1
+            TickerTableRow = TickerTableRow + 1
+            
+            'Calculate Beg Value for Next Stock - Adjusts for what happens if Beg Value is Zero
+            If Range("c" & i + 1).Value > 0 Then
+                BegValue = Range("c" & i + 1).Value
+                            
+            Else
+                BegValue = -10
+                
+            End If
+        End If
+        
+    Next i
+    
+    Dim LastRowTable As Long
+    LastRowTable = Cells(Rows.Count, 9).End(xlUp).Row
+    
+    For i = 2 To LastRowTable
+        
+        If Cells(i, 10).Value > 0 Then
+            Cells(i, 10).Interior.Color = vbGreen
+        
+        Else
+            Cells(i, 10).Interior.Color = vbRed
+            
+        End If
+        
+    Next i
+    
+    'Formatting Text
+    Range("J2:J" & LastRowTable).NumberFormat = "$#,##0.00"
+    Range("K2:K" & LastRowTable).NumberFormat = "0.00%"
+    Range("L2:L" & LastRowTable).NumberFormat = "#,##0"
+    Range("I1:L" & LastRowTable).Columns.AutoFit
+    Range("j:k").HorizontalAlignment = xlCenter
+    
+    'Bonus Excercise - Table of a Table
+    
+    'Table Labels
+    Range("N2") = "Greatest % Increase"
+    Range("N3") = "Greatest % Decrease"
+    Range("N4") = "Greatest Total Volume"
+    
+    Range("O1") = "Ticker"
+    Range("P1") = "Value"
+       
+    'Calculating Greatest Increae
+    Dim GreatPerIncName As String
+    Dim GreatPerInc As Double
+    GreatPerInc = Cells(2, 11).Value
+    
+    For i = 3 To LastRowTable
+    
+        If Cells(i, 11) > GreatPerInc Then
+            GreatPerIncName = Cells(i, 9).Value
+            GreatPerInc = Cells(i, 11).Value
+        
+        End If
+    
+    Next i
+    
+    'Inserting Greatest Increase Data
+    Range("O2") = GreatPerIncName
+    Range("P2") = GreatPerInc
+    Range("P2").NumberFormat = "0.00%"
+    
+    'Calculating Greatest Decrease
+    Dim GreatPerDecName As String
+    Dim GreatPerDec As Double
+    GreatPerDec = Cells(2, 11).Value
+    
+    For i = 3 To LastRowTable
+    
+        If Cells(i, 11) < GreatPerDec Then
+            GreatPerDecName = Cells(i, 9).Value
+            GreatPerDec = Cells(i, 11).Value
+        
+        End If
+    
+    Next i
+    
+    'Inserting Greatest Decrease Data
+    Range("O3") = GreatPerDecName
+    Range("P3") = GreatPerDec
+    Range("P3").NumberFormat = "0.00%"
+    
+    'Calculating Greatest Volume
+    Dim GreatVolume As Double
+    Dim GreatVolumeName As String
+    GreatVolume = Cells(2, 12).Value
+    
+    For i = 3 To LastRowTable
+    
+        If Cells(i, 12) > GreatVolume Then
+            GreatVolumeName = Cells(i, 9).Value
+            GreatVolume = Cells(i, 12).Value
+        
+        End If
+    
+    Next i
+    
+    'Inserting Greatest Volume
+    Range("O4") = GreatVolumeName
+    Range("P4") = GreatVolume
+    Range("P4").NumberFormat = "#,##0"
+    
+    Range("n1:p4").Columns.AutoFit
+    Range("o1:p1").HorizontalAlignment = xlCenter
+    
+End Sub
+
+'Clearing Individual Results
+Sub StockChallengeClearResults():
+
+    'Clear First Table
+    Dim LastRowTable As Long
+    LastRowTable = Cells(Rows.Count, 9).End(xlUp).Row
+
+    'Clear Second Table
+    Range("I1:L" & LastRowTable) = ""
+    Range("I1:L" & LastRowTable).Interior.ColorIndex = 0
+    Range("N1:P4") = ""
+                
+End Sub
+    
+'Code for Running Macro on All Sheets    
+Sub StockChallengeGlobalMacr():
+    
+    Dim ws As Worksheet
+    
+    For Each ws In Worksheets
+
+    If ws.Name <> "Macro Buttons" Then
+        
+        Dim LastRow As Long
+        Dim StockTicker As String
+        Dim i As Long
+        Dim TickerTableRow As Integer
+        TickerTableRow = 2
+        Dim VolumeTotal As Double
+        VolumeTotal = 0
+        Dim BegValue As Double
+        Dim EndValue As Double
+        Dim YearlyChange As Double
+        Dim PercentChange As Double
+         
+        ws.Range("I1") = "Ticker"
+        ws.Range("J1") = "Yearly Change"
+        ws.Range("K1") = "Percent Change"
+        ws.Range("L1") = "Total Stock Volume"
+        
+        'Counting Rows in original data
+        LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+    
+        BegValue = ws.Range("C2")
+ 
+        For i = 2 To LastRow
+         
+            ' Deals with what happens if a stock does not begin trading until later (aka starting value is 0)
+            If BegValue = -10 Then
+                If ws.Cells(i, 3) > 0 Then
+                    BegValue = ws.Cells(i, 3).Value
+                End If
+            End If
+        
+            'Adding Volume Total if this row and row below have same name
+            If ws.Cells(i, 1) = ws.Cells(i + 1, 1) Then
+                VolumeTotal = VolumeTotal + ws.Cells(i, 7).Value
+                
+            'If the current ticker doesn't match the ticker below
+            Else
+                              
+                'Set Stock Ticker to Current Row
+                StockTicker = ws.Cells(i, 1).Value
+                ws.Range("I" & TickerTableRow) = StockTicker
+            
+                'Add this rows' volume to total volume
+                VolumeTotal = VolumeTotal + ws.Cells(i, 7).Value
+                        
+                'Print Volume Total in Table
+                ws.Range("L" & TickerTableRow) = VolumeTotal
+        
+                'Reset Volume Total
+                VolumeTotal = 0
+                
+                'Set the Stocks End Value
+                EndValue = ws.Cells(i, 6).Value
+            
+                'Calculate and put Yearly Change in table
+                YearlyChange = EndValue - BegValue
+                ws.Range("J" & TickerTableRow) = YearlyChange
+            
+                'Calculate and put Percent Change in table
+                PercentChange = YearlyChange / BegValue
+                ws.Range("k" & TickerTableRow) = PercentChange
+                        
+                'Move Output row by 1
+                TickerTableRow = TickerTableRow + 1
+            
+                'Calculate Beg Value for Next Stock - Adjusts for what happens if Beg Value is Zero
+                If ws.Range("c" & i + 1).Value > 0 Then
+                    BegValue = ws.Range("c" & i + 1).Value
+                            
+                Else
+                    BegValue = -10
+                
+                End If
+            End If
+        
+        Next i
+    
+        Dim LastRowTable As Long
+        LastRowTable = ws.Cells(Rows.Count, 9).End(xlUp).Row
+    
+        For i = 2 To LastRowTable
+        
+            If ws.Cells(i, 10).Value > 0 Then
+                ws.Cells(i, 10).Interior.Color = vbGreen
+        
+            Else
+                ws.Cells(i, 10).Interior.Color = vbRed
+            
+            End If
+        
+        Next i
+    
+        'Formatting Text
+        ws.Range("J2:J" & LastRowTable).NumberFormat = "$#,##0.00"
+        ws.Range("K2:K" & LastRowTable).NumberFormat = "0.00%"
+        ws.Range("L2:L" & LastRowTable).NumberFormat = "#,##0"
+        ws.Range("I1:L" & LastRowTable).Columns.AutoFit
+        ws.Range("j:k").HorizontalAlignment = xlCenter
+    
+        'Bonus Excercise - Table of a Table
+    
+        'Table Labels
+        ws.Range("N2") = "Greatest % Increase"
+        ws.Range("N3") = "Greatest % Decrease"
+        ws.Range("N4") = "Greatest Total Volume"
+    
+        ws.Range("O1") = "Ticker"
+        ws.Range("P1") = "Value"
+       
+        'Calculating Greatest Increae
+        Dim GreatPerIncName As String
+        Dim GreatPerInc As Double
+        GreatPerInc = ws.Cells(2, 11).Value
+    
+        For i = 3 To LastRowTable
+    
+            If ws.Cells(i, 11) > GreatPerInc Then
+                GreatPerIncName = ws.Cells(i, 9).Value
+                GreatPerInc = ws.Cells(i, 11).Value
+        
+            End If
+    
+        Next i
+    
+        'Inserting Greatest Increase Data
+        ws.Range("O2") = GreatPerIncName
+        ws.Range("P2") = GreatPerInc
+        ws.Range("P2").NumberFormat = "0.00%"
+    
+        'Calculating Greatest Decrease
+        Dim GreatPerDecName As String
+        Dim GreatPerDec As Double
+        GreatPerDec = ws.Cells(2, 11).Value
+    
+        For i = 3 To LastRowTable
+    
+            If ws.Cells(i, 11) < GreatPerDec Then
+                GreatPerDecName = ws.Cells(i, 9).Value
+                GreatPerDec = ws.Cells(i, 11).Value
+        
+            End If
+    
+        Next i
+    
+        'Inserting Greatest Decrease Data
+        ws.Range("O3") = GreatPerDecName
+        ws.Range("P3") = GreatPerDec
+        ws.Range("P3").NumberFormat = "0.00%"
+    
+        'Calculating Greatest Volume
+        Dim GreatVolume As Double
+        Dim GreatVolumeName As String
+        GreatVolume = ws.Cells(2, 12).Value
+    
+        For i = 3 To LastRowTable
+    
+            If ws.Cells(i, 12) > GreatVolume Then
+                GreatVolumeName = ws.Cells(i, 9).Value
+                GreatVolume = ws.Cells(i, 12).Value
+        
+            End If
+    
+        Next i
+    
+        'Inserting Greatest Volume
+        ws.Range("O4") = GreatVolumeName
+        ws.Range("P4") = GreatVolume
+        ws.Range("P4").NumberFormat = "#,##0"
+    
+        ws.Range("n1:p4").Columns.AutoFit
+        ws.Range("o1:p1").HorizontalAlignment = xlCenter
+    
+    End If
+        
+    Next ws
+        
+End Sub
+
+'Clearing All Sheets
+Sub StockChallengeClearResultsGlobalMacro():
+
+    Dim ws As Worksheet
+    
+    For Each ws In Worksheets
+
+    If ws.Name <> "Macro Buttons" Then
+    
+        'Clear First Table
+        Dim LastRowTable As Long
+        LastRowTable = ws.Cells(Rows.Count, 9).End(xlUp).Row
+
+        'Clear Second Table
+        ws.Range("I1:L" & LastRowTable) = ""
+        ws.Range("I1:L" & LastRowTable).Interior.ColorIndex = 0
+        ws.Range("N1:P4") = ""
+                
+    End If
+    
+    Next ws
+
+End Sub
+
